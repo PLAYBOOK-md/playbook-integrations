@@ -1,0 +1,15 @@
+{
+  "name": "playbook-integrations",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agent Skills, MCP server, and shared parser for PLAYBOOK.md",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "license": "MIT"
+}
