@@ -1,4 +1,9 @@
-# playbook-integrations
+# PLAYBOOK.md Integrations
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/PLAYBOOK-MD/playbook-integrations)](https://github.com/PLAYBOOK-MD/playbook-integrations/stargazers)
+[![npm @playbook-md/core](https://img.shields.io/npm/v/@playbook-md/core)](https://www.npmjs.com/package/@playbook-md/core)
+[![npm @playbook-md/mcp](https://img.shields.io/npm/v/@playbook-md/mcp)](https://www.npmjs.com/package/@playbook-md/mcp)
 
 Agent Skills, MCP server, and shared parser/validator for [PLAYBOOK.md](https://github.com/PLAYBOOK-MD/playbook-spec) -- the open specification for multi-step AI workflows written in plain markdown.
 
