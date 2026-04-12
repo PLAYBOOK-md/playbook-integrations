@@ -7,7 +7,7 @@
  * Checks:
  *   - 200KB (200,000 byte) size limit
  *   - 7 artifact types
- *   - 5 input types (canonical VariableType values)
+ *   - 6 variable types (canonical VariableType values, includes json for outputs)
  *   - 4 directives handled (@output, @elicit, @prompt, @tool)
  */
 
@@ -35,6 +35,7 @@ const EXPECTED_INPUT_TYPES = [
   "number",
   "boolean",
   "enum",
+  "json",
 ].sort();
 
 const EXPECTED_DIRECTIVES = [
