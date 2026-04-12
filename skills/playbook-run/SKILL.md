@@ -104,7 +104,10 @@ Process directives in this order:
 
 4. **@output**: After the step produces output, store it as a named variable:
    - Basic: `@output(varname)` -- store the full response
+   - Typed: `@output(varname: type)` -- store with type annotation (string, text, number, boolean, json, enum). The type is metadata for UI rendering and runtime coercion; the response is always captured as a string.
+   - Enum: `@output(varname: enum, "opt1", "opt2")` -- store with enumerated allowed values
    - Extract: `@output(varname, extract:"field")` -- scan the response (bottom-up) for a JSON object containing "field", extract that field's value. Fall back to full response if extraction fails.
+   - Combined: `@output(varname: type, extract:"field")` -- typed with extraction
 
 #### 3d. Make the AI call
 

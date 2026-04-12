@@ -43,7 +43,10 @@ When creating or editing .playbook.md files, follow these rules:
 Directives appear on their own line inside steps. They are not sent to the AI as prompt text.
 
 - `@output(varname)` -- Capture the step's AI response as a named variable
+- `@output(varname: type)` -- Typed capture (string, text, number, boolean, json, enum)
+- `@output(varname: enum, "opt1", "opt2")` -- Enum capture with allowed values
 - `@output(varname, extract:"field")` -- Extract a JSON field from the response
+- `@output(varname: type, extract:"field")` -- Typed with JSON field extraction
 - `@elicit(type, ...)` -- Pause execution and request user input
   - Types: `input`, `confirm`, `select`
 
@@ -84,6 +87,8 @@ type: markdown
 ```
 
 Valid types: `markdown`, `json`, `mermaid`, `chartjs`, `html_css`, `javascript`, `typescript`.
+
+The artifact type supports dynamic `{{variable}}` interpolation, resolved at execution time from inputs or named outputs.
 
 ## Validating playbooks
 

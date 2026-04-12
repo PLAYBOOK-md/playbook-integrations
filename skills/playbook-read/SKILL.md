@@ -85,10 +85,17 @@ Directives are special lines extracted from step content. They modify execution 
 
 | Directive | Pattern | Purpose |
 |-----------|---------|---------|
-| `@output(varname)` | `^@output\((\w+)(?:,\s*extract:"(\w+)")?\)$` | Capture step output as a named variable |
+| `@output(varname)` | `^@output\((\w+)(?:\s*:\s*(\w+))?((?:,\s*"[^"]*")*)?(?:,\s*extract:"(\w+)")?\)\s*$` | Capture step output as a named variable (optionally typed) |
 | `@elicit(type, "prompt")` | `^@elicit\((\w+)(?:,\s*(.+))?\)$` | Pause for human input |
 | `@prompt(library:id)` | `^@prompt\(library:([a-zA-Z0-9-]+)\)$` | Prepend external prompt content |
 | `@tool(conn, name, {args})` | `^@tool\((.+)\)$` | Invoke external tool (skip AI call) |
+
+**Typed output variants:**
+- `@output(varname)` -- untyped, captures the full response as a string
+- `@output(varname: type)` -- typed capture (string, text, number, boolean, json, enum)
+- `@output(varname: enum, "opt1", "opt2")` -- enum capture with allowed values
+- `@output(varname: type, extract:"field")` -- typed with JSON field extraction
+- `@output(varname, extract:"field")` -- untyped with JSON field extraction
 
 ### 7. Identify branches
 
@@ -192,5 +199,6 @@ When reading a playbook, verify:
 - [ ] Document is under 200KB
 - [ ] `{{variable}}` references match declared inputs or prior @output names
 - [ ] Branch condition variables are declared inputs or prior @output names
-- [ ] Artifact type (if present) is one of the 7 valid types
+- [ ] Artifact type (if present) is one of the 7 valid types, or a `{{variable}}` reference to a declared variable
 - [ ] @elicit types are `input`, `confirm`, or `select`
+- [ ] @output type annotations (if present) are valid: `string`, `text`, `number`, `boolean`, `json`, `enum`

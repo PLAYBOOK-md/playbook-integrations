@@ -24,9 +24,9 @@ Description text               OPTIONAL  Between title and first ##
 - Input format: `- \`name\` (type): Description`
 - Variables are referenced with `{{variable_name}}` interpolation
 - Directives (`@output`, `@elicit`) appear on their own line inside steps
-- `@output(varname)` captures a step's result for use in later steps
+- `@output(varname)` captures a step's result for use in later steps (optionally typed: `@output(name: type)`)
 - Branch conditions use fenced code blocks: `` ```if condition``` ``
-- Artifacts declare output type: `markdown`, `json`, `mermaid`, `chartjs`, `html_css`, `javascript`, `typescript`
+- Artifacts declare output type: `markdown`, `json`, `mermaid`, `chartjs`, `html_css`, `javascript`, `typescript` (supports dynamic `type: {{variable}}`)
 - Max document size: 200 KB
 
 ## MCP tools available

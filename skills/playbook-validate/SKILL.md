@@ -103,6 +103,12 @@ FOR each step in order:
 ### 6. Validate directives
 
 ```
+FOR each @output(varname: type, ...):
+  type is optional -- if present, valid types are:
+    string, text, number, boolean, json, enum
+  enum outputs may include quoted option values:
+    @output(varname: enum, "opt1", "opt2")
+
 FOR each @elicit(type, ...):
   IF type NOT IN ["input", "confirm", "select"] -> WARNING W5
 ```
@@ -111,10 +117,14 @@ FOR each @elicit(type, ...):
 
 ```
 IF ## ARTIFACTS has a type: line:
-  IF type NOT IN valid_types -> WARNING W3
+  IF type matches {{variable}} pattern:
+    IF variable NOT IN (inputs UNION outputs) -> WARNING W6
+  ELIF type NOT IN valid_types -> WARNING W3
 ```
 
 Valid types: `markdown`, `json`, `mermaid`, `chartjs`, `html_css`, `javascript`, `typescript`.
+
+Dynamic types using `{{variable}}` interpolation are valid when the variable is declared as an input or `@output` capture. The resolved value is checked at execution time.
 
 ### 8. Validate branches
 

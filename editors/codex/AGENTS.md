@@ -15,14 +15,19 @@ Input format: `- \`name\` (type): Description`
 
 Directives (on their own line inside steps):
 - `@output(varname)` -- capture step output as a variable
+- `@output(varname: type)` -- typed capture (string, text, number, boolean, json, enum)
+- `@output(varname: enum, "opt1", "opt2")` -- enum capture with allowed values
 - `@output(varname, extract:"field")` -- extract a JSON field
+- `@output(varname: type, extract:"field")` -- typed with extraction
 - `@elicit(type, ...)` -- request user input during execution
+
+Regex for @output: `^@output\((\w+)(?:\s*:\s*(\w+))?((?:,\s*"[^"]*")*)?(?:,\s*extract:"(\w+)")?\)\s*$`
 
 Variable interpolation uses `{{variable_name}}`.
 
 Branch conditions use fenced code: `` ```if condition``` `` / `` ```else``` `` / `` ```endif``` ``
 
-Artifact types: `markdown`, `json`, `mermaid`, `chartjs`, `html_css`, `javascript`, `typescript`.
+Artifact types: `markdown`, `json`, `mermaid`, `chartjs`, `html_css`, `javascript`, `typescript`. Supports dynamic type via `{{variable}}` interpolation (e.g., `type: {{output_format}}`).
 
 ## MCP server
 

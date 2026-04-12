@@ -87,11 +87,17 @@ Step content is the prompt text sent to the AI. Use `{{variable}}` for input int
 
 Place directives on their own lines within step content:
 
-**@output** -- Capture step output as a named variable:
+**@output** -- Capture step output as a named variable (optionally typed):
 ```markdown
 @output(analysis)
+@output(count: number)
+@output(sentiment: enum, "positive", "negative", "neutral")
+@output(data: json)
 @output(severity, extract:"level")
+@output(level: string, extract:"level")
 ```
+
+Valid output types: `string`, `text`, `number`, `boolean`, `json`, `enum`. Type is optional and does not change execution -- it is metadata for UI rendering and runtime coercion.
 
 **@elicit** -- Pause for human input:
 ```markdown
@@ -157,6 +163,8 @@ type: markdown
 
 Valid types: `markdown`, `json`, `mermaid`, `chartjs`, `html_css`, `javascript`, `typescript`.
 
+The type can be dynamic using variable interpolation: `type: {{output_format}}`. The variable must be a declared input or prior `@output` capture, and resolves at execution time.
+
 ## Step-by-step instructions
 
 1. **Identify the workflow goal.** What does the user want to automate? What is the expected output?
@@ -166,7 +174,7 @@ Valid types: `markdown`, `json`, `mermaid`, `chartjs`, `html_css`, `javascript`,
 3. **Design the steps.** Break the workflow into sequential AI calls. Each step should have a clear, single purpose. Use context accumulation -- each step automatically receives all prior outputs.
 
 4. **Add directives where needed:**
-   - Use `@output` when a later step or branch needs to reference this step's result by name
+   - Use `@output` when a later step or branch needs to reference this step's result by name. Add a type annotation (`@output(name: type)`) when the output has a known type (number, boolean, json, enum).
    - Use `@elicit` for human review gates or decision points
    - Use `@tool` for data fetching or external actions
    - Use `@prompt` to inject reusable prompt templates
@@ -327,6 +335,6 @@ Before finalizing a playbook, verify:
 - [ ] Every `if` has a matching `endif`
 - [ ] Sub-step labels match parent step number (e.g., STEP 2a inside STEP 2 branches)
 - [ ] @elicit types are one of: `input`, `confirm`, `select`
-- [ ] Artifact type is one of: `markdown`, `json`, `mermaid`, `chartjs`, `html_css`, `javascript`, `typescript`
+- [ ] Artifact type is one of: `markdown`, `json`, `mermaid`, `chartjs`, `html_css`, `javascript`, `typescript` (or a `{{variable}}` reference)
 - [ ] Document is under 200KB
 - [ ] Document is valid UTF-8
