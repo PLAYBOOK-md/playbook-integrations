@@ -15,6 +15,13 @@
     "ai-workflows"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PLAYBOOK-MD/playbook-integrations",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/PLAYBOOK-MD/playbook-integrations/tree/main/packages/core",
+  "bugs": "https://github.com/PLAYBOOK-MD/playbook-integrations/issues",
   "devDependencies": {
     "typescript": "^5.7.0",
     "vitest": "^3.1.0"

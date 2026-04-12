@@ -1,0 +1,75 @@
+#!/bin/sh
+# PLAYBOOK.md pre-commit hook
+# Validates all staged .playbook.md files before allowing a commit.
+#
+# Install:
+#   cp pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+#
+# Or use with husky (package.json):
+#   "husky": { "hooks": { "pre-commit": "./hooks/pre-commit" } }
+#
+# Or use with lefthook (lefthook.yml):
+#   pre-commit:
+#     commands:
+#       validate-playbooks:
+#         run: ./hooks/pre-commit
+
+set -e
+
+# Find all staged .playbook.md files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.playbook\.md$' || true)
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+# Determine which validator to use
+VALIDATOR=""
+if command -v playbook >/dev/null 2>&1; then
+  VALIDATOR="playbook"
+elif command -v npx >/dev/null 2>&1; then
+  VALIDATOR="npx"
+else
+  echo "Warning: Neither 'playbook' CLI nor 'npx' found. Skipping playbook validation."
+  echo "Install with: npm install -g @playbook-md/cli"
+  exit 0
+fi
+
+ERRORS=0
+CHECKED=0
+
+for FILE in $STAGED_FILES; do
+  # Only validate files that exist (not deleted)
+  if [ ! -f "$FILE" ]; then
+    continue
+  fi
+
+  CHECKED=$((CHECKED + 1))
+
+  if [ "$VALIDATOR" = "playbook" ]; then
+    if ! playbook validate "$FILE" --quiet 2>/dev/null; then
+      echo "FAIL: $FILE"
+      playbook validate "$FILE" 2>/dev/null || true
+      ERRORS=$((ERRORS + 1))
+    fi
+  else
+    if ! npx -y @playbook-md/cli validate "$FILE" --quiet 2>/dev/null; then
+      echo "FAIL: $FILE"
+      npx -y @playbook-md/cli validate "$FILE" 2>/dev/null || true
+      ERRORS=$((ERRORS + 1))
+    fi
+  fi
+done
+
+if [ "$ERRORS" -gt 0 ]; then
+  echo ""
+  echo "Playbook validation failed: $ERRORS of $CHECKED file(s) have errors."
+  echo "Fix the errors above or use --no-verify to skip (not recommended)."
+  exit 1
+fi
+
+if [ "$CHECKED" -gt 0 ]; then
+  echo "Playbook validation passed: $CHECKED file(s) checked."
+fi
+
+exit 0

@@ -30,7 +30,11 @@ npx skills add PLAYBOOK-MD/playbook-integrations
 
 A Model Context Protocol server that exposes playbook operations as tools for AI agents. The MCP server does NOT call any external LLM -- it provides tools for the host agent to use with its own LLM.
 
-**Status:** Coming soon.
+**Run the server:**
+
+```bash
+npx @playbook-md/mcp
+```
 
 ### 3. Core Library
 
@@ -48,6 +52,27 @@ const result = parsePlaybook(markdown);
 const validation = validatePlaybook(markdown);
 const summary = summarizePlaybook(result.definition!);
 ```
+
+### 4. Editor & Tool Integrations
+
+The `editors/` directory contains configuration files and instructions for integrating PLAYBOOK.md into popular AI coding tools:
+
+- **Claude Code** (`editors/claude-code/`)
+- **Codex** (`editors/codex/`)
+- **opencode** (`editors/opencode/`)
+- **Continue** (`editors/continue/`)
+- **Cline** (`editors/cline/`)
+- **Aider** (`editors/aider/`)
+
+Install all editor integrations at once with the CLI:
+
+```bash
+playbook setup
+```
+
+### 5. Pre-commit Hook
+
+A pre-commit hook is available at `hooks/pre-commit` to validate `.playbook.md` files before committing. Copy it into your project's `.git/hooks/` directory or reference it from your pre-commit configuration.
 
 ## Development
 
@@ -74,6 +99,15 @@ skills/
   playbook-validate/   SKILL.md
   playbook-run/        SKILL.md
   playbook-convert/    SKILL.md
+editors/
+  claude-code/         Claude Code integration config
+  codex/               Codex integration config
+  opencode/            opencode integration config
+  continue/            Continue integration config
+  cline/               Cline integration config
+  aider/               Aider integration config
+hooks/
+  pre-commit           Git pre-commit hook for playbook validation
 ```
 
 ## Related repos
@@ -82,6 +116,9 @@ skills/
 - [playbook-schema](https://github.com/PLAYBOOK-MD/playbook-schema) -- TypeScript types and JSON Schema
 - [playbook-gallery](https://github.com/PLAYBOOK-MD/playbook-gallery) -- Curated example playbooks
 - [playbook-playground](https://github.com/PLAYBOOK-MD/playbook-playground) -- Web-based editor and validator
+- [playbook-vscode](https://github.com/PLAYBOOK-MD/playbook-vscode) -- VS Code extension with syntax highlighting and validation
+- [playbook-cli](https://github.com/PLAYBOOK-MD/playbook-cli) -- CLI tool for validating, parsing, and scaffolding playbooks
+- [playbook-action](https://github.com/PLAYBOOK-MD/playbook-action) -- GitHub Action for PR validation
 
 ## License
 

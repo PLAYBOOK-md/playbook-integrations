@@ -1,0 +1,9 @@
+{
+  "mcpServers": [
+    {
+      "name": "playbook-md",
+      "command": "npx",
+      "args": ["-y", "@playbook-md/mcp"]
+    }
+  ]
+}

@@ -27,6 +27,8 @@ playbook-spec.
 - `packages/core/` -- parser, validator, converter (shared library)
 - `packages/mcp/` -- MCP server (consumes core)
 - `skills/` -- Agent Skill definitions (SKILL.md files, no code)
+- `editors/` -- Editor/tool integration configs (Claude Code, Codex, opencode, Continue, Cline, Aider)
+- `hooks/` -- Git hooks (pre-commit for playbook validation)
 - Schema types imported from `@playbook-md/schema`
 
 ## Testing
