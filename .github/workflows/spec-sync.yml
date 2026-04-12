@@ -1,0 +1,47 @@
+name: Spec Sync
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 0' # Sunday midnight UTC
+  workflow_dispatch:
+
+jobs:
+  validate-gallery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: PLAYBOOK-MD/playbook-gallery
+          path: gallery
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+      - run: npm run build
+      - run: node .github/scripts/validate-gallery.mjs gallery/playbooks
+
+  check-alignment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: PLAYBOOK-MD/playbook-spec
+          path: spec
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+      - run: npm run build
+      - run: node .github/scripts/check-regex.mjs
+      - run: node .github/scripts/check-constants.mjs
