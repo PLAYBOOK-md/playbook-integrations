@@ -153,9 +153,21 @@ function validateDefinition(def: PlaybookDefinition): ValidationResult {
 
   // Check 4: Verify artifact type is valid
   if (def.artifact_type && !VALID_ARTIFACT_TYPES.includes(def.artifact_type)) {
-    warnings.push({
-      message: `Unknown artifact type "${def.artifact_type}". Valid types: ${VALID_ARTIFACT_TYPES.join(', ')}`,
-    });
+    // Check if it's a dynamic variable reference like {{output_format}}
+    const dynamicMatch = def.artifact_type.match(/^\{\{(\w+)\}\}$/);
+    if (dynamicMatch) {
+      // W6: check that the referenced variable is declared
+      const varName = dynamicMatch[1];
+      if (!inputNames.has(varName) && !allOutputs.has(varName)) {
+        warnings.push({
+          message: `Artifact type references undeclared variable "{{${varName}}}"`,
+        });
+      }
+    } else {
+      warnings.push({
+        message: `Unknown artifact type "${def.artifact_type}". Valid types: ${VALID_ARTIFACT_TYPES.join(', ')}`,
+      });
+    }
   }
 
   return {

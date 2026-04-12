@@ -127,9 +127,19 @@ func validateDefinition(def *PlaybookDefinition) *ValidationResult {
 
 	// Check 4: Verify artifact type is valid
 	if def.ArtifactType != "" && !validArtifactTypes[def.ArtifactType] {
-		warnings = append(warnings, ParseWarning{
-			Message: fmt.Sprintf("Unknown artifact type %q. Valid types: %s", def.ArtifactType, strings.Join(validArtifactTypesList(), ", ")),
-		})
+		// Check if it's a dynamic variable reference like {{output_format}}
+		if dm := reDynamicVar.FindStringSubmatch(string(def.ArtifactType)); dm != nil {
+			varName := dm[1]
+			if !inputNames[varName] && !allOutputs[varName] {
+				warnings = append(warnings, ParseWarning{
+					Message: fmt.Sprintf("Artifact type references undeclared variable \"{{%s}}\"", varName),
+				})
+			}
+		} else {
+			warnings = append(warnings, ParseWarning{
+				Message: fmt.Sprintf("Unknown artifact type %q. Valid types: %s", def.ArtifactType, strings.Join(validArtifactTypesList(), ", ")),
+			})
+		}
 	}
 
 	return &ValidationResult{

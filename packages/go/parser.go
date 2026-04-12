@@ -24,7 +24,7 @@ var (
 	reInputLine = regexp.MustCompile(`^-\s+` + "`" + `([a-zA-Z][a-zA-Z0-9_]*)` + "`" + `\s+\(([^)]+)\)(?::\s*(.+))?$`)
 
 	// Directives
-	reOutput = regexp.MustCompile(`^@output\((\w+)(?:,\s*extract:"(\w+)")?\)\s*$`)
+	reOutput = regexp.MustCompile(`^@output\((\w+)(?:\s*:\s*(\w+))?((?:,\s*"[^"]*")*)?(?:,\s*extract:"(\w+)")?\)\s*$`)
 	reElicit = regexp.MustCompile(`^@elicit\((\w+)(?:,\s*(.+))?\)\s*$`)
 	rePrompt = regexp.MustCompile(`^@prompt\(library:([a-zA-Z0-9-]+)\)\s*$`)
 	reTool   = regexp.MustCompile(`^@tool\((.+)\)\s*$`)
@@ -61,6 +61,7 @@ var typeAliases = map[string]VariableType{
 	"enum":    VariableTypeEnum,
 	"select":  VariableTypeEnum,
 	"choice":  VariableTypeEnum,
+	"json":    VariableTypeJSON,
 }
 
 // ---------------------------------------------------------------------------
@@ -300,13 +301,18 @@ func parseInputs(lines []string, startLine int, warnings *[]ParseWarning, errors
 // ---------------------------------------------------------------------------
 
 type directiveResult struct {
-	outputVar    string
-	extractField string
-	elicitation  *ElicitationDef
-	toolCall     *StepToolCall
-	promptRef    *PromptReference
-	contentLines []string
+	outputVar     string
+	outputType    VariableType
+	outputOptions []string
+	extractField  string
+	elicitation   *ElicitationDef
+	toolCall      *StepToolCall
+	promptRef     *PromptReference
+	contentLines  []string
 }
+
+var reEnumValue = regexp.MustCompile(`,\s*"([^"]*)"`)
+
 
 func parseQuotedStrings(s string) []string {
 	re := regexp.MustCompile(`"([^"]*)"`)
@@ -329,7 +335,22 @@ func extractDirectives(lines []string, startLine int, warnings *[]ParseWarning) 
 		if m := reOutput.FindStringSubmatch(trimmed); m != nil {
 			result.outputVar = m[1]
 			if m[2] != "" {
-				result.extractField = m[2]
+				rawType := strings.ToLower(m[2])
+				if resolved, ok := typeAliases[rawType]; ok {
+					result.outputType = resolved
+				} else {
+					result.outputType = VariableTypeString
+				}
+			}
+			if m[3] != "" {
+				// Parse enum values from repeated `, "value"` patterns
+				enumMatches := reEnumValue.FindAllStringSubmatch(m[3], -1)
+				for _, em := range enumMatches {
+					result.outputOptions = append(result.outputOptions, em[1])
+				}
+			}
+			if m[4] != "" {
+				result.extractField = m[4]
 			}
 			continue
 		}
@@ -644,6 +665,12 @@ func buildSubStep(number int, label string, title string, lines []string, startL
 	if directives.outputVar != "" {
 		step.OutputVar = directives.outputVar
 	}
+	if directives.outputType != "" {
+		step.OutputType = directives.outputType
+	}
+	if len(directives.outputOptions) > 0 {
+		step.OutputOptions = directives.outputOptions
+	}
 	if directives.extractField != "" {
 		step.ExtractField = directives.extractField
 	}
@@ -664,17 +691,25 @@ func buildSubStep(number int, label string, title string, lines []string, startL
 // Artifact parsing
 // ---------------------------------------------------------------------------
 
+var reDynamicVar = regexp.MustCompile(`^\{\{(\w+)\}\}$`)
+
 func parseArtifacts(lines []string, startLine int, warnings *[]ParseWarning) ArtifactType {
 	for i, rawLine := range lines {
 		line := strings.TrimSpace(rawLine)
 		lineNum := startLine + i
 
 		if m := reArtifactType.FindStringSubmatch(line); m != nil {
-			raw := strings.ToLower(strings.TrimSpace(m[1]))
-			at := ArtifactType(raw)
-			if !validArtifactTypes[at] {
-				*warnings = append(*warnings, ParseWarning{Line: lineNum, Message: fmt.Sprintf("Unknown artifact type: %q", raw)})
+			raw := strings.TrimSpace(m[1])
+			lower := strings.ToLower(raw)
+			at := ArtifactType(lower)
+			if validArtifactTypes[at] {
+				return at
 			}
+			// Check for dynamic variable reference like {{output_format}}
+			if reDynamicVar.MatchString(raw) {
+				return ArtifactType(raw)
+			}
+			*warnings = append(*warnings, ParseWarning{Line: lineNum, Message: fmt.Sprintf("Unknown artifact type: %q", lower)})
 			return at
 		}
 	}
@@ -798,6 +833,12 @@ func ParsePlaybook(markdown string) *ParseResult {
 			}
 			if directives.outputVar != "" {
 				step.OutputVar = directives.outputVar
+			}
+			if directives.outputType != "" {
+				step.OutputType = directives.outputType
+			}
+			if len(directives.outputOptions) > 0 {
+				step.OutputOptions = directives.outputOptions
 			}
 			if directives.extractField != "" {
 				step.ExtractField = directives.extractField

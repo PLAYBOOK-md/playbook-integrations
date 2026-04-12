@@ -37,7 +37,7 @@ const RE_ARTIFACTS = /^ARTIFACTS$/i;
 const RE_INPUT_LINE = /^-\s+`([a-zA-Z][a-zA-Z0-9_]*)`\s+\(([^)]+)\)(?::\s*(.+))?$/;
 
 // Directives
-const RE_OUTPUT = /^@output\((\w+)(?:,\s*extract:"(\w+)")?\)\s*$/;
+const RE_OUTPUT = /^@output\((\w+)(?:\s*:\s*(\w+))?((?:,\s*"[^"]*")*)?(?:,\s*extract:"(\w+)")?\)\s*$/;
 const RE_ELICIT = /^@elicit\((\w+)(?:,\s*(.+))?\)\s*$/;
 const RE_PROMPT = /^@prompt\(library:([a-zA-Z0-9-]+)\)\s*$/;
 const RE_TOOL = /^@tool\((.+)\)\s*$/;
@@ -67,6 +67,7 @@ const TYPE_ALIASES: Record<string, VariableType> = {
   enum: "enum",
   select: "enum",
   choice: "enum",
+  json: "json",
 };
 
 // ---------------------------------------------------------------------------
@@ -275,6 +276,8 @@ function parseInputs(
 
 interface DirectiveResult {
   output_var?: string;
+  output_type?: VariableType;
+  output_options?: string[];
   extract_field?: string;
   elicitation?: ElicitationDef;
   tool_call?: StepToolCall;
@@ -311,7 +314,23 @@ function extractDirectives(
     if (outputMatch) {
       result.output_var = outputMatch[1];
       if (outputMatch[2]) {
-        result.extract_field = outputMatch[2];
+        const rawType = outputMatch[2].toLowerCase();
+        result.output_type = TYPE_ALIASES[rawType] || "string";
+      }
+      if (outputMatch[3]) {
+        // Parse enum values from repeated `, "value"` patterns
+        const enumValues: string[] = [];
+        const enumRe = /,\s*"([^"]*)"/g;
+        let em: RegExpExecArray | null;
+        while ((em = enumRe.exec(outputMatch[3])) !== null) {
+          enumValues.push(em[1]);
+        }
+        if (enumValues.length > 0) {
+          result.output_options = enumValues;
+        }
+      }
+      if (outputMatch[4]) {
+        result.extract_field = outputMatch[4];
       }
       continue;
     }
@@ -600,6 +619,8 @@ function buildSubStep(
     is_branching: false,
     line: raw.startLine,
     ...(directives.output_var ? { output_var: directives.output_var } : {}),
+    ...(directives.output_type ? { output_type: directives.output_type } : {}),
+    ...(directives.output_options ? { output_options: directives.output_options } : {}),
     ...(directives.extract_field ? { extract_field: directives.extract_field } : {}),
     ...(directives.elicitation ? { elicitation: directives.elicitation } : {}),
     ...(directives.tool_call ? { tool_call: directives.tool_call } : {}),
@@ -622,12 +643,16 @@ function parseArtifacts(
 
     const match = line.match(RE_ARTIFACT_TYPE);
     if (match) {
-      const raw = match[1].trim().toLowerCase();
-      if (VALID_ARTIFACT_TYPES.includes(raw as ArtifactType)) {
+      const raw = match[1].trim();
+      const lower = raw.toLowerCase();
+      if (VALID_ARTIFACT_TYPES.includes(lower as ArtifactType)) {
+        return lower as ArtifactType;
+      } else if (/^\{\{(\w+)\}\}$/.test(raw)) {
+        // Dynamic variable reference — store raw, skip unknown-type warning
         return raw as ArtifactType;
       } else {
-        warnings.push({ line: lineNum, message: `Unknown artifact type: "${raw}"` });
-        return raw as ArtifactType;
+        warnings.push({ line: lineNum, message: `Unknown artifact type: "${lower}"` });
+        return lower as ArtifactType;
       }
     }
   }
@@ -742,6 +767,8 @@ export function parsePlaybook(markdown: string): ParseResult {
         is_branching: branchResult.hasBranches,
         line: section.startLine,
         ...(directives.output_var ? { output_var: directives.output_var } : {}),
+        ...(directives.output_type ? { output_type: directives.output_type } : {}),
+        ...(directives.output_options ? { output_options: directives.output_options } : {}),
         ...(directives.extract_field ? { extract_field: directives.extract_field } : {}),
         ...(directives.elicitation ? { elicitation: directives.elicitation } : {}),
         ...(directives.tool_call ? { tool_call: directives.tool_call } : {}),

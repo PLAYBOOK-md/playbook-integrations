@@ -9,6 +9,7 @@ const (
 	VariableTypeNumber  VariableType = "number"
 	VariableTypeBoolean VariableType = "boolean"
 	VariableTypeEnum    VariableType = "enum"
+	VariableTypeJSON    VariableType = "json"
 )
 
 // InputDef defines a single input parameter for a playbook.
@@ -57,18 +58,20 @@ type Branch struct {
 
 // Step represents a single step in a playbook.
 type Step struct {
-	Number       int              `json:"number"`
-	Label        string           `json:"label"`
-	Title        string           `json:"title"`
-	Content      string           `json:"content"`
-	PromptRef    *PromptReference `json:"prompt_ref,omitempty"`
-	OutputVar    string           `json:"output_var,omitempty"`
-	ExtractField string           `json:"extract_field,omitempty"`
-	Elicitation  *ElicitationDef  `json:"elicitation,omitempty"`
-	ToolCall     *StepToolCall    `json:"tool_call,omitempty"`
-	IsBranching  bool             `json:"is_branching"`
-	Branches     []Branch         `json:"branches,omitempty"`
-	Line         int              `json:"line,omitempty"`
+	Number        int              `json:"number"`
+	Label         string           `json:"label"`
+	Title         string           `json:"title"`
+	Content       string           `json:"content"`
+	PromptRef     *PromptReference `json:"prompt_ref,omitempty"`
+	OutputVar     string           `json:"output_var,omitempty"`
+	OutputType    VariableType     `json:"output_type,omitempty"`
+	OutputOptions []string         `json:"output_options,omitempty"`
+	ExtractField  string           `json:"extract_field,omitempty"`
+	Elicitation   *ElicitationDef  `json:"elicitation,omitempty"`
+	ToolCall      *StepToolCall    `json:"tool_call,omitempty"`
+	IsBranching   bool             `json:"is_branching"`
+	Branches      []Branch         `json:"branches,omitempty"`
+	Line          int              `json:"line,omitempty"`
 }
 
 // ArtifactType represents the type of artifact a playbook produces.

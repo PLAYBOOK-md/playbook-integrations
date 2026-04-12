@@ -5,7 +5,7 @@
  * When the parser is extracted, these will be imported from the schema package.
  */
 
-export type VariableType = "string" | "text" | "number" | "boolean" | "enum";
+export type VariableType = "string" | "text" | "number" | "boolean" | "enum" | "json";
 
 export interface InputDef {
   name: string;
@@ -53,6 +53,8 @@ export interface Step {
   content: string;
   prompt_ref?: PromptReference;
   output_var?: string;
+  output_type?: VariableType;
+  output_options?: string[];
   extract_field?: string;
   elicitation?: ElicitationDef;
   tool_call?: StepToolCall;

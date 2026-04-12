@@ -176,11 +176,22 @@ def _validate_definition(definition: PlaybookDefinition) -> ValidationResult:
         definition.artifact_type
         and definition.artifact_type not in VALID_ARTIFACT_TYPES
     ):
-        warnings.append(
-            ParseWarning(
-                message=f'Unknown artifact type "{definition.artifact_type}". Valid types: {", ".join(VALID_ARTIFACT_TYPES)}',
+        # Check if it's a dynamic variable reference like {{output_format}}
+        dynamic_match = re.match(r"^\{\{(\w+)\}\}$", definition.artifact_type)
+        if dynamic_match:
+            var_name = dynamic_match.group(1)
+            if var_name not in input_names and var_name not in all_outputs:
+                warnings.append(
+                    ParseWarning(
+                        message=f'Artifact type references undeclared variable "{{{{{var_name}}}}}"',
+                    )
+                )
+        else:
+            warnings.append(
+                ParseWarning(
+                    message=f'Unknown artifact type "{definition.artifact_type}". Valid types: {", ".join(VALID_ARTIFACT_TYPES)}',
+                )
             )
-        )
 
     return ValidationResult(
         valid=len(fatal_errors) == 0,

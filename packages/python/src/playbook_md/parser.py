@@ -47,7 +47,7 @@ RE_INPUT_LINE = re.compile(
 )
 
 # Directives
-RE_OUTPUT = re.compile(r'^@output\((\w+)(?:,\s*extract:"(\w+)")?\)\s*$')
+RE_OUTPUT = re.compile(r'^@output\((\w+)(?:\s*:\s*(\w+))?((?:,\s*"[^"]*")*)?(?:,\s*extract:"(\w+)")?\)\s*$')
 RE_ELICIT = re.compile(r"^@elicit\((\w+)(?:,\s*(.+))?\)\s*$")
 RE_PROMPT = re.compile(r"^@prompt\(library:([a-zA-Z0-9-]+)\)\s*$")
 RE_TOOL = re.compile(r"^@tool\((.+)\)\s*$")
@@ -83,7 +83,10 @@ TYPE_ALIASES: dict[str, VariableType] = {
     "enum": "enum",
     "select": "enum",
     "choice": "enum",
+    "json": "json",
 }
+
+RE_ENUM_VALUE = re.compile(r',\s*"([^"]*)"')
 
 
 # ---------------------------------------------------------------------------
@@ -297,6 +300,8 @@ def _parse_inputs(
 class _DirectiveResult:
     content_lines: list[str] = field(default_factory=list)
     output_var: Optional[str] = None
+    output_type: Optional[VariableType] = None
+    output_options: Optional[list[str]] = None
     extract_field: Optional[str] = None
     elicitation: Optional[ElicitationDef] = None
     tool_call: Optional[StepToolCall] = None
@@ -353,7 +358,15 @@ def _extract_directives(
         if output_match:
             result.output_var = output_match.group(1)
             if output_match.group(2):
-                result.extract_field = output_match.group(2)
+                raw_type = output_match.group(2).lower()
+                result.output_type = TYPE_ALIASES.get(raw_type, "string")
+            if output_match.group(3):
+                # Parse enum values from repeated `, "value"` patterns
+                enum_values = RE_ENUM_VALUE.findall(output_match.group(3))
+                if enum_values:
+                    result.output_options = enum_values
+            if output_match.group(4):
+                result.extract_field = output_match.group(4)
             continue
 
         # @elicit
@@ -447,6 +460,8 @@ def _build_sub_step(
         is_branching=False,
         line=start_line,
         output_var=directives.output_var,
+        output_type=directives.output_type,
+        output_options=directives.output_options,
         extract_field=directives.extract_field,
         elicitation=directives.elicitation,
         tool_call=directives.tool_call,
@@ -676,6 +691,9 @@ def _parse_branches(
 # ---------------------------------------------------------------------------
 
 
+RE_DYNAMIC_VAR = re.compile(r"^\{\{(\w+)\}\}$")
+
+
 def _parse_artifacts(
     lines: list[str],
     start_line: int,
@@ -687,15 +705,20 @@ def _parse_artifacts(
 
         match = RE_ARTIFACT_TYPE.match(line)
         if match:
-            raw = match.group(1).strip().lower()
-            if raw not in VALID_ARTIFACT_TYPES:
-                warnings.append(
-                    ParseWarning(
-                        line=line_num,
-                        message=f'Unknown artifact type: "{raw}"',
-                    )
+            raw = match.group(1).strip()
+            lower = raw.lower()
+            if lower in VALID_ARTIFACT_TYPES:
+                return lower
+            # Check for dynamic variable reference like {{output_format}}
+            if RE_DYNAMIC_VAR.match(raw):
+                return raw
+            warnings.append(
+                ParseWarning(
+                    line=line_num,
+                    message=f'Unknown artifact type: "{lower}"',
                 )
-            return raw
+            )
+            return lower
 
     return None
 
@@ -813,6 +836,8 @@ def parse_playbook(markdown: str) -> ParseResult:
                 is_branching=branch_result.has_branches,
                 line=section.start_line,
                 output_var=directives.output_var,
+                output_type=directives.output_type,
+                output_options=directives.output_options,
                 extract_field=directives.extract_field,
                 elicitation=directives.elicitation,
                 tool_call=directives.tool_call,

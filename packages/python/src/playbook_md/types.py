@@ -14,7 +14,7 @@ from typing import Literal, Optional
 # Type aliases
 # ---------------------------------------------------------------------------
 
-VariableType = Literal["string", "text", "number", "boolean", "enum"]
+VariableType = Literal["string", "text", "number", "boolean", "enum", "json"]
 
 ArtifactType = Literal[
     "markdown", "json", "mermaid", "chartjs", "html_css", "javascript", "typescript"
@@ -94,6 +94,8 @@ class Step:
     is_branching: bool = False
     prompt_ref: Optional[PromptReference] = None
     output_var: Optional[str] = None
+    output_type: Optional[VariableType] = None
+    output_options: Optional[list[str]] = None
     extract_field: Optional[str] = None
     elicitation: Optional[ElicitationDef] = None
     tool_call: Optional[StepToolCall] = None
