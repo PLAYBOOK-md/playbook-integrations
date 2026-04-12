@@ -38,9 +38,9 @@ const RE_INPUT_LINE = /^-\s+`([a-zA-Z][a-zA-Z0-9_]*)`\s+\(([^)]+)\)(?::\s*(.+))?
 
 // Directives
 const RE_OUTPUT = /^@output\((\w+)(?:\s*:\s*(\w+))?((?:,\s*"[^"]*")*)?(?:,\s*extract:"(\w+)")?\)\s*$/;
-const RE_ELICIT = /^@elicit\((\w+)(?:,\s*(.+))?\)\s*$/;
-const RE_PROMPT = /^@prompt\(library:([a-zA-Z0-9-]+)\)\s*$/;
-const RE_TOOL = /^@tool\((.+)\)\s*$/;
+const RE_ELICIT = /^@elicit\((\w+)(?:,\s*(.+))?\)$/;
+const RE_PROMPT = /^@prompt\((.+)\)$/;
+const RE_TOOL = /^@tool\((.+)\)$/;
 
 // Branch markers
 const RE_IF = /^```if\s+(\w+)\s*(==|!=)\s*"([^"]*)"\s*```$/;
@@ -49,7 +49,7 @@ const RE_ELSE = /^```else```$/;
 const RE_ENDIF = /^```endif```$/;
 
 // Artifact type line
-const RE_ARTIFACT_TYPE = /^type:\s*(.+)$/;
+const RE_ARTIFACT_TYPE = /^type:\s*(\S+)$/i;
 
 const VALID_ARTIFACT_TYPES: ArtifactType[] = [
   "markdown", "json", "mermaid", "chartjs", "html_css", "javascript", "typescript",
