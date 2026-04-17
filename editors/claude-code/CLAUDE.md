@@ -40,3 +40,7 @@ The `playbook-md` MCP server is configured for this project. Use these tools:
 - **playbook_summarize** -- Generate a concise summary of a playbook's structure and purpose
 
 When working with .playbook.md files, prefer using these MCP tools over manual parsing.
+
+## Running playbooks as Claude Code Routines
+
+A `.playbook.md` file can run autonomously on [Claude Code Routines](https://code.claude.com/docs/en/routines) (scheduled / API-triggered / GitHub-triggered) with no custom code. The three-step setup (commit the playbook, commit the `playbook-run` skill, create the routine with a short prompt) is documented in [`ROUTINES.md`](ROUTINES.md).

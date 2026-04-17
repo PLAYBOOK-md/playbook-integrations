@@ -219,3 +219,45 @@ When running a playbook:
 - [ ] @elicit steps pause until user responds
 - [ ] @output captures happen after the step produces output
 - [ ] Skipped steps (no matching branch) produce no output
+
+## Autonomous / unattended execution
+
+Some execution targets (Claude Code Routines, batch runners, cron-driven schedulers) run a playbook without a human available to answer `@elicit` directives or confirm breakpoints. When executing in unattended mode, follow these rules:
+
+### Default elicit responses
+
+If the caller has not supplied an override value for an `@elicit` directive, use:
+
+| Type | Default response |
+|------|------------------|
+| `confirm` | `"yes"` |
+| `select` | the first option |
+| `input` | the empty string (`""`) |
+
+Record the default in `__elicit_step_N` exactly as if the human had supplied it. Downstream steps see the same value they would see in an interactive run.
+
+### Overrides via caller payload
+
+When a caller wants explicit answers (e.g. the Claude Code Routines `/fire` endpoint includes them in the `text` body), look for a structured `elicit` block alongside the input values:
+
+```yaml
+inputs:
+  topic: "AI safety"
+elicit:
+  3: "yes"          # step number -> response
+  4: "Performance"
+```
+
+Use these overrides in preference to the defaults above. If the payload is freeform prose (not structured), still default per the table; do not guess at intent.
+
+### `@output(extract:"field")` fidelity caveat
+
+In unattended pure-LLM execution (no runtime JSON parser in the loop), `@output(var, extract:"field")` depends on the model emitting well-formed JSON. Occasionally it will not. Mitigations:
+
+- In the step's prompt content, explicitly instruct the model to include a JSON object containing the target field.
+- If extraction fails, fall back to the full response (same behavior as the spec).
+- For high-stakes branching on extracted values, prefer an `enum`-typed `@output` with explicit options so the response is self-constrained.
+
+### Breakpoints
+
+Autonomous runs ignore caller-supplied breakpoints. Log a warning (do not fail) if a breakpoint is specified.
