@@ -62,7 +62,7 @@ const summary = summarizePlaybook(result.definition!);
 
 The `editors/` directory contains configuration files and instructions for integrating PLAYBOOK.md into popular AI coding tools:
 
-- **Claude Code** (`editors/claude-code/`)
+- **Claude Code** (`editors/claude-code/`) — also runs `.playbook.md` files as [Claude Code Routines](editors/claude-code/ROUTINES.md) (scheduled / API-triggered / GitHub-triggered autonomous sessions)
 - **Codex** (`editors/codex/`)
 - **opencode** (`editors/opencode/`)
 - **Continue** (`editors/continue/`)
