@@ -44,3 +44,7 @@ When working with .playbook.md files, prefer using these MCP tools over manual p
 ## Running playbooks as Claude Code Routines
 
 A `.playbook.md` file can run autonomously on [Claude Code Routines](https://code.claude.com/docs/en/routines) (scheduled / API-triggered / GitHub-triggered) with no custom code. The three-step setup (commit the playbook, commit the `playbook-run` skill, create the routine with a short prompt) is documented in [`ROUTINES.md`](ROUTINES.md).
+
+## Running playbooks in GitHub Actions
+
+A `.playbook.md` file can run as a GitHub Action step via [`PLAYBOOK-MD/playbook-native`](https://github.com/PLAYBOOK-MD/playbook-native) — a standalone Node 20 action that calls the Anthropic SDK directly. Setup, workflow templates (PR / scheduled / dispatch), and the full compatibility matrix are in [`GITHUB-ACTIONS.md`](GITHUB-ACTIONS.md). MCP directives (`@tool`, `@prompt(mcp:…)`, `@prompt(library:…)`) are rejected at pre-flight in v1.
